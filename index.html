@@ -122,7 +122,7 @@
     </div>
     <video id="video-input" playsinline></video>
     <audio id="bgm" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <source src="https://ia902508.us.archive.org/5/items/jingle-bells-kevin-macleod/Jingle_Bells.mp3" type="audio/mpeg">
     </audio>
     <div id="canvas-container"></div>
 
@@ -926,7 +926,14 @@
         // 音乐控制
         const bgm = document.getElementById('bgm');
         const musicBtn = document.getElementById('music-btn');
-        let musicPlaying = false;
+        let musicPlaying = true;  // 初始状态为播放中
+        
+        // 立即尝试播放音乐
+        bgm.play().catch(e => {
+            console.log('自动播放被阻止，请点击音乐按钮');
+            musicBtn.textContent = '🔇 音乐';
+            musicPlaying = false;
+        });
         
         musicBtn.addEventListener('click', () => {
             if (musicPlaying) {
@@ -1021,14 +1028,9 @@
             setTimeout(() => e.target.classList.remove('active'), 300);
         });
         
-        // 尝试自动播放（某些浏览器可能需要用户交互）
+        // 启动摄像头和手势识别
         cam.start().then(() => {
             document.getElementById('loader').style.display = 'none';
-            bgm.play().catch(e => {
-                console.log('自动播放被阻止，请点击音乐按钮');
-                musicBtn.textContent = '🔇 音乐';
-            });
-            musicPlaying = true;
         });
 
     </script>
