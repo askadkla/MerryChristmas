@@ -122,7 +122,10 @@
     </div>
     <video id="video-input" playsinline></video>
     <audio id="bgm" loop>
-        <source src="https://ia902508.us.archive.org/5/items/jingle-bells-kevin-macleod/Jingle_Bells.mp3" type="audio/mpeg">
+        <!-- 方案1: 使用本地文件 - 将 jingle-bells.mp3 放在同一目录 -->
+        <source src="jingle-bells.mp3" type="audio/mpeg">
+        <!-- 方案2: 备用圣诞音乐 -->
+        <source src="https://cdn.pixabay.com/download/audio/2021/11/23/audio_5e8bb6c212.mp3" type="audio/mpeg">
     </audio>
     <div id="canvas-container"></div>
 
@@ -926,14 +929,24 @@
         // 音乐控制
         const bgm = document.getElementById('bgm');
         const musicBtn = document.getElementById('music-btn');
-        let musicPlaying = true;  // 初始状态为播放中
+        let musicPlaying = false;  // 初始状态为未播放
         
-        // 立即尝试播放音乐
-        bgm.play().catch(e => {
-            console.log('自动播放被阻止，请点击音乐按钮');
-            musicBtn.textContent = '🔇 音乐';
-            musicPlaying = false;
-        });
+        // 等待音频加载完成后自动播放
+        bgm.addEventListener('canplaythrough', () => {
+            if (!musicPlaying) {
+                bgm.play().then(() => {
+                    musicBtn.textContent = '🔊 音乐';
+                    musicPlaying = true;
+                }).catch(e => {
+                    console.log('自动播放被阻止，请点击音乐按钮');
+                    musicBtn.textContent = '🔇 音乐';
+                    musicPlaying = false;
+                });
+            }
+        }, { once: true });
+        
+        // 立即尝试加载音频
+        bgm.load();
         
         musicBtn.addEventListener('click', () => {
             if (musicPlaying) {
