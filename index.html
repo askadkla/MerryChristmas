@@ -929,24 +929,48 @@
         // 音乐控制
         const bgm = document.getElementById('bgm');
         const musicBtn = document.getElementById('music-btn');
-        let musicPlaying = false;  // 初始状态为未播放
+        let musicPlaying = true;  // 初始状态为播放中（自动播放）
+        let autoplayAttempted = false;
         
-        // 等待音频加载完成后自动播放
-        bgm.addEventListener('canplaythrough', () => {
-            if (!musicPlaying) {
-                bgm.play().then(() => {
-                    musicBtn.textContent = '🔊 音乐';
-                    musicPlaying = true;
-                }).catch(e => {
-                    console.log('自动播放被阻止，请点击音乐按钮');
-                    musicBtn.textContent = '🔇 音乐';
-                    musicPlaying = false;
-                });
-            }
-        }, { once: true });
+        // 尝试播放音乐的函数
+        function tryPlayMusic() {
+            if (autoplayAttempted) return;
+            autoplayAttempted = true;
+            
+            bgm.play().then(() => {
+                musicBtn.textContent = '🔊 音乐';
+                musicPlaying = true;
+                console.log('音乐自动播放成功');
+            }).catch(e => {
+                console.log('自动播放被阻止，等待用户交互');
+                musicBtn.textContent = '🔇 音乐';
+                musicPlaying = false;
+                
+                // 添加一次性用户交互监听器，在用户第一次交互时播放
+                const enableAudio = () => {
+                    bgm.play().then(() => {
+                        musicBtn.textContent = '🔊 音乐';
+                        musicPlaying = true;
+                        console.log('用户交互后音乐播放成功');
+                    }).catch(err => console.log('播放失败', err));
+                    
+                    document.removeEventListener('click', enableAudio);
+                    document.removeEventListener('touchstart', enableAudio);
+                };
+                
+                document.addEventListener('click', enableAudio, { once: true });
+                document.addEventListener('touchstart', enableAudio, { once: true });
+            });
+        }
         
-        // 立即尝试加载音频
+        // 方案1: 音频加载完成后立即播放
+        bgm.addEventListener('canplaythrough', tryPlayMusic, { once: true });
+        
+        // 方案2: 立即加载音频
         bgm.load();
+        
+        // 方案3: 页面完全加载后也尝试（防止canplaythrough未触发）
+        setTimeout(tryPlayMusic, 500);
         
         musicBtn.addEventListener('click', () => {
             if (musicPlaying) {
